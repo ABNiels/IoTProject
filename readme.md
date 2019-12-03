@@ -4,6 +4,8 @@
 First run the build.sh file, then the cp_and_chmod.sh
 These may require sudo privledges
 
+Use GPIO49 (P9 23) for the LED
+
 ##### View
 Navigate to <ip_address>:port/home/html to view the page
 An internet connection is required for the stylesheet CDNs to load
