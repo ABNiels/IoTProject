@@ -1,0 +1,120 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!-- stylesheet CDNs -->
+		  <meta name="viewport" content="width=device-width, initial-scale=1">
+		  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+		  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+		  <link href="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.11/css/mdb.min.css" rel="stylesheet">
+		<title> CPE422 </title>
+		<style>
+			p {
+				color:blue;
+			}
+		</style>
+	</head>
+
+	<body> 
+		<div class="jumbotron">
+			<h1> CPE422-IoT Project </h1>
+			<h4> Temperature Sensing and LED Control </h4>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-4 col-lg-4 col-sm-4">
+					<label class="radio-inline"><input type="radio" name="optradio" id="off" checked> Off </label>
+					<label class="radio-inline"><input type="radio" name="optradio" id="on"> On </label>
+					<label class="radio-inline"><input type="radio" name="optradio" id="blink"> Blink </label>
+					<label id="blinkSlider" for="blinkRange"> Number of Blinks: </label>
+					<input type="text" style="width:50px;" id="blinkRange" val="10">
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-offset-1 col-lg-offset-4 col-sm-offset-4">
+					<button id="startLED" class="btn btn-primary"> Start </button>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4"></div>
+				<div class="col-md-4"> 
+					<h6 id="temp" > Current Temperature: </h6>
+				</div>
+				<div class="col-md-4"></div>
+			</div>
+			<canvas id="lineChart"></canvas>
+		</div>
+
+		<!-- JS CDNs -->
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.4/umd/popper.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdbootstrap/4.8.11/js/mdb.min.js"></script>
+
+		<!-- Graph Setup -->
+		<script>
+			var myData = [];
+			var myLabels = [];
+			var num = 0;
+			var backC = ['rgba(105, 0, 132, .2)'];
+			var bordC = ['rgba(200, 99, 132, .7)'];
+			var dataLabel = " ";
+			var bordW = 2;
+
+			var set = {label:dataLabel,data:myData, backgroundColor:backC, borderColor:bordC, borderWidth:bordW};
+			var ctxL = document.getElementById("lineChart").getContext('2d');
+
+			var myLineChart = new Chart(ctxL, {
+				type: 'line',
+				data: {
+					labels: myLabels,
+					datasets: [{
+						label: dataLabel,
+						data: myData,
+						backgroundColor: backC,
+						borderColor: bordC,
+						borderWidth: bordW
+					}]
+				},
+				options: {
+					responsive: true
+				}
+			});
+		</script>
+		<!-- Graph Update -->
+		<script>
+			function temperature() {
+				$.ajax({url:"/cgi-bin/file.cgi",
+					type: "post",
+					success: function(output) {
+						$("#temp").text("Current Temperature: "+output);
+						myData.push(output);
+						myLabels.push(++num);
+						myLineChart.data = {
+							labels: myLabels,
+							datasets:[{
+								label: dataLabel,
+								data: myData,
+								backgroundColor: backC,
+								borderColor: bordC,
+								borderWidth: bordW
+							}]
+						}
+						myLineChart.update();
+					}
+				});
+			}
+			setInterval(temperature, 5000);
+		</script>
+		<!-- Submit Form -->
+		<script>
+			$("#startLED").click(function() {
+				var option = $("input[name=optradio]:checked").attr('id')
+				var value = $("#blinkRange").val();
+				$.ajax({url:"/cgi-bin/ledBlink.cgi?cmd="+option+"&blinks="+value,
+					type: "post",
+				}).done(function(results) {console.log(results)});
+			});
+		</script>
+	</body>
+</html>
+
